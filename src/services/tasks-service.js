@@ -14,7 +14,7 @@ async function ensureUserInTeam(userId, teamId) {
 const createTask = async ({
   title,
   description,
-  team_id: teamId, // ✅ correctly rename
+  team_id: teamId,
   assigned_to: assignedTo,
   due_date: dueDate,
   userId,
