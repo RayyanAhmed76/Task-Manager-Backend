@@ -1,8 +1,11 @@
 const express = require("express");
-const router = express.Router();
+const { requireAuth } = require("../../middlewares/authmiddlewares");
+const teamCtrl = require("../../controllers/teams-controller");
 
-router.get("/", (req, res) => {
-  res.send("Teams route working");
-});
+const router = express.Router();
+router.use(requireAuth);
+
+router.post("/", teamCtrl.createTeam);
+router.get("/", teamCtrl.listUserTeams);
 
 module.exports = router;
