@@ -1,18 +1,29 @@
 const db = require("../db/knex");
+const { NotFoundError } = require("../utils/apperrors");
 
 const createTask = async (task) => {
   const [t] = await db("tasks").insert(task).returning("*");
   return t;
 };
 
-const updateTask = (id, patch) =>
-  db("tasks").where({ id }).update(patch).returning("*");
+const updateTask = async (id, patch) => {
+  const [updated] = await db("tasks")
+    .where({ id })
+    .update(patch)
+    .returning("*");
+  if (!updated) throw new NotFoundError(`Task with id ${id} does not exist`);
+  return updated;
+};
 
-const deleteTask = (id) => db("tasks").where({ id }).delete();
+const deleteTask = async (id) => {
+  const deleted = await db("tasks").where({ id }).del();
+  if (!deleted) throw new NotFoundError(`Task with id ${id} does not exist`);
+  return deleted;
+};
 
 const getTaskById = async (id) => {
   const task = await db("tasks").where({ id }).first();
-  if (!task) throw new Error("Task not found");
+  if (!task) throw new NotFoundError(`Task with id ${id} does not exist`);
   return task;
 };
 
