@@ -25,8 +25,6 @@ router.get("/all", taskCtrl.getTasks);
 router.get("/:id", taskCtrl.getTaskById);
 
 //to update task
-console.log(taskCtrl.updateTask); // should print: [AsyncFunction: updateTask]
-
 router.patch(
   "/update/:id",
   updateTaskValidator,
