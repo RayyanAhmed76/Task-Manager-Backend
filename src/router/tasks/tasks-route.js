@@ -1,37 +1,27 @@
 const express = require("express");
 const { requireAuth } = require("../../middlewares/authmiddlewares");
+const handleValidationErrors = require("../../middlewares/validate");
 const taskCtrl = require("../../controllers/tasks-controller");
 const {
   createTaskValidator,
+  listTasksValidator,
+  taskIdParam,
   updateTaskValidator,
 } = require("../../validators/taskvalidation");
-const handleValidationErrors = require("../../middlewares/validate");
 
 const router = express.Router();
+
 router.use(requireAuth);
 
-//to create a task
-router.post(
-  "/create",
-  createTaskValidator,
-  handleValidationErrors,
-  taskCtrl.createTask
-);
-
-// to get all the tasks
-router.get("/all", taskCtrl.getTasks);
-
-//to get task by id
-router.get("/:id", taskCtrl.getTaskById);
-
-//to update task
+router.get("/", listTasksValidator, handleValidationErrors, taskCtrl.list);
+router.post("/", createTaskValidator, handleValidationErrors, taskCtrl.create);
 router.patch(
-  "/update/:id",
+  "/:id",
+  taskIdParam,
   updateTaskValidator,
   handleValidationErrors,
-  taskCtrl.updateTask
+  taskCtrl.update
 );
-
-router.delete("/delete/:id", taskCtrl.deleteTask);
+router.delete("/:id", taskIdParam, handleValidationErrors, taskCtrl.remove);
 
 module.exports = router;

@@ -1,81 +1,63 @@
-const taskService = require("../services/tasks-service");
-const {
-  NotFoundError,
-  ValidationError,
-  ConflictError,
-} = require("../utils/apperrors");
+const tasksService = require("../services/tasks-service");
 
-const createTask = async (req, res, next) => {
+const create = async (req, res, next) => {
   try {
-    const { title, description, team_id, assigned_to, status } = req.body;
-
-    const task = await taskService.createTask({
-      title,
-      description,
-      team_id,
-      assigned_to,
-      status,
-      creator_id: req.session.userId,
+    const task = await tasksService.createTask({
+      title: req.body.title,
+      description: req.body.description,
+      team_id: req.body.team_id,
+      assigned_to: req.body.assigned_to,
+      due_date: req.body.due_date,
+      userId: req.session.userId,
     });
 
     res.status(201).json({ task });
   } catch (err) {
-    if (err instanceof ValidationError || err instanceof ConflictError) {
-      return res.status(err.statusCode).json({ error: err.message });
-    }
     next(err);
   }
 };
 
-const updateTask = async (req, res, next) => {
+const list = async (req, res, next) => {
   try {
-    const task = await taskService.updateTask(req.params.id, req.body);
-    res.json({ task });
-  } catch (err) {
-    if (err instanceof NotFoundError || err instanceof ValidationError) {
-      return res.status(err.statusCode).json({ error: err.message });
-    }
-    next(err);
-  }
-};
-
-const deleteTask = async (req, res, next) => {
-  try {
-    await taskService.deleteTask(req.params.id);
-    res.json({ message: "Task deleted" });
-  } catch (err) {
-    if (err instanceof NotFoundError) {
-      return res.status(err.statusCode).json({ error: err.message });
-    }
-    next(err);
-  }
-};
-
-const getTasks = async (req, res, next) => {
-  try {
-    const tasks = await taskService.getTasks(req.query);
+    const tasks = await tasksService.listTasks({
+      userId: req.session.userId,
+      teamId: req.query.teamId,
+      assigneeId: req.query.assigneeId,
+    });
     res.json({ tasks });
   } catch (err) {
     next(err);
   }
 };
 
-const getTaskById = async (req, res, next) => {
+const update = async (req, res, next) => {
   try {
-    const task = await taskService.getTaskById(req.params.id);
+    const task = await tasksService.updateTask({
+      id: parseInt(req.params.id, 10),
+      userId: req.session.userId,
+      changes: req.body,
+    });
     res.json({ task });
   } catch (err) {
-    if (err instanceof NotFoundError) {
-      return res.status(err.statusCode).json({ error: err.message });
-    }
+    next(err);
+  }
+};
+
+const remove = async (req, res, next) => {
+  try {
+    const result = await tasksService.deleteTask({
+      id: parseInt(req.params.id, 10),
+      userId: req.session.userId,
+    });
+    res.json(result);
+  } catch (err) {
     next(err);
   }
 };
 
 module.exports = {
-  createTask,
-  updateTask,
-  deleteTask,
-  getTasks,
-  getTaskById,
+  create,
+  list,
+  update,
+  remove,
 };

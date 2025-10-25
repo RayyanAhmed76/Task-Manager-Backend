@@ -7,7 +7,11 @@ function requireAuth(req, res, next) {
 
 async function attachUser(req, res, next) {
   if (req.session && req.session.userId) {
-    req.user = await userRepo.findById(req.session.userId);
+    try {
+      req.user = await userRepo.getUserById(req.session.userId);
+    } catch (e) {
+      req.user = null;
+    }
   }
   next();
 }

@@ -1,19 +1,3 @@
-class NotFoundError extends Error {
-  constructor(message) {
-    super(message);
-    this.name = "NotFoundError";
-    this.statusCode = 404;
-  }
-}
-
-class ValidationError extends Error {
-  constructor(message) {
-    super(message);
-    this.name = "ValidationError";
-    this.statusCode = 400;
-  }
-}
-
 class ConflictError extends Error {
   constructor(message) {
     super(message);
@@ -22,8 +6,4 @@ class ConflictError extends Error {
   }
 }
 
-module.exports = {
-  NotFoundError,
-  ValidationError,
-  ConflictError,
-};
+module.exports = ConflictError;

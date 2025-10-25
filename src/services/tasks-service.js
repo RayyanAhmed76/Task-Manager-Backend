@@ -1,51 +1,74 @@
-const taskRepo = require("../repositories/tasks-repository");
-const { NotFoundError, ValidationError } = require("../utils/apperrors");
+const db = require("../db/knex");
+const tasksRepo = require("../repositories/tasks-repository");
+const teamsRepo = require("../repositories/teams-repository");
 
-const createTask = async (taskData) => {
-  try {
-    return await taskRepo.createTask(taskData);
-  } catch (err) {
-    if (err.code === "23503") {
-      throw new ValidationError("Invalid team_id or assigned_to");
-    }
+async function ensureUserInTeam(userId, teamId) {
+  const isMember = await teamsRepo.isMember(userId, teamId);
+  if (!isMember) {
+    const err = new Error("Not a member of the team");
+    err.status = 403;
     throw err;
   }
-};
+}
 
-const updateTask = async (id, patch) => {
-  const existingTask = await taskRepo.getTaskById(id);
-  if (!existingTask) {
-    throw new NotFoundError(`Task with id ${id} does not exist`);
+const createTask = async ({
+  title,
+  description,
+  team_id: teamId, // ✅ correctly rename
+  assigned_to: assignedTo,
+  due_date: dueDate,
+  userId,
+}) => {
+  await ensureUserInTeam(userId, teamId);
+
+  if (assignedTo) {
+    await ensureUserInTeam(assignedTo, teamId);
   }
 
-  return taskRepo.updateTask(id, patch);
+  const data = {
+    title,
+    description,
+    team_id: teamId,
+    assigned_to: assignedTo || null,
+    due_date: dueDate || null,
+    creator_id: userId,
+    status: "pending",
+  };
+
+  return tasksRepo.createTask(data);
 };
 
-const deleteTask = async (id) => {
-  const existingTask = await taskRepo.getTaskById(id);
-  if (!existingTask) {
-    throw new NotFoundError(`Task with id ${id} does not exist`);
+const listTasks = async ({ userId, teamId, assigneeId }) => {
+  return tasksRepo.listTasks({ userId, teamId, assigneeId });
+};
+
+const updateTask = async ({ id, userId, changes }) => {
+  const existing = await tasksRepo.getTaskByIdVisibleToUser(id, userId);
+  if (!existing) {
+    const err = new Error("Task not found");
+    err.status = 404;
+    throw err;
   }
-
-  return taskRepo.deleteTask(id);
-};
-
-const getTaskById = async (id) => {
-  const task = await taskRepo.getTaskById(id);
-  if (!task) {
-    throw new NotFoundError(`Task with id ${id} does not exist`);
+  if (changes.assigned_to) {
+    await ensureUserInTeam(changes.assigned_to, existing.team_id);
   }
-  return task;
+  return tasksRepo.updateTask(id, changes);
 };
 
-const getTasks = async (filters) => {
-  return taskRepo.getTasks(filters);
+const deleteTask = async ({ id, userId }) => {
+  const existing = await tasksRepo.getTaskByIdVisibleToUser(id, userId);
+  if (!existing) {
+    const err = new Error("Task not found");
+    err.status = 404;
+    throw err;
+  }
+  await tasksRepo.deleteTask(id);
+  return { success: true };
 };
 
 module.exports = {
   createTask,
+  listTasks,
   updateTask,
   deleteTask,
-  getTaskById,
-  getTasks,
 };
