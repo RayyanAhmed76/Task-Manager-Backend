@@ -30,7 +30,7 @@ const logout = (req, res) => {
   req.session.destroy((err) => {
     if (err) return res.status(500).json({ error: "Logout failed" });
 
-    res.clearCookie("connect.sid", {
+    res.clearCookie("sid", {
       path: "/",
       httpOnly: true,
     });
@@ -42,7 +42,7 @@ const logout = (req, res) => {
 const me = async (req, res, next) => {
   try {
     if (!req.session.userId) return res.json({ user: null });
-    const user = await userRepo.findById(req.session.userId);
+    const user = await userRepo.getUserById(req.session.userId);
     if (!user) return res.json({ user: null });
     const { password_hash, ...safe } = user;
     res.json({ user: safe });
