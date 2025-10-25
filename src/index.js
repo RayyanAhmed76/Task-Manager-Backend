@@ -1,7 +1,27 @@
 const express = require("express");
+const session = require("express-session");
 const { PORT } = require("./config/server-config");
+const authRoutes = require("./router/auth/auth-route");
+const teamRoutes = require("./router/teams/teams-route");
+const taskRoutes = require("./router/tasks/tasks-route");
+
 const app = express();
 
+app.use(express.json());
+
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: false },
+  })
+);
+
+app.use("/auth", authRoutes);
+app.use("/teams", teamRoutes);
+app.use("/tasks", taskRoutes);
+
 app.listen(PORT, () => {
-  console.log("server is running on port 4000");
+  console.log(`Server is running on port ${PORT}`);
 });
