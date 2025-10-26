@@ -14,8 +14,13 @@ const addMemberValidator = [
     .withMessage("user_id must be a positive integer"),
 ];
 
+const emailValidator = [
+  body("email").isEmail().withMessage("Valid email required"),
+];
+
 module.exports = {
   createTeamValidator,
   teamIdParam,
   addMemberValidator,
+  emailValidator,
 };

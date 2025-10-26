@@ -9,7 +9,6 @@ function errorHandler(err, req, res, next) {
     error: err.message || "Internal server error",
   };
 
-  // Include stack trace in development
   if (process.env.NODE_ENV !== "production") {
     response.stack = err.stack;
   }

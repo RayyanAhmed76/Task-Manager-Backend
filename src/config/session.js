@@ -6,7 +6,6 @@ const { Pool } = require("pg");
 const PgSession = connectPgSimple(session);
 
 function sessionMiddleware() {
-  // Create explicit pool with connection string to override system env vars
   const pool = new Pool({
     connectionString: `postgresql://${process.env.DB_USER || "postgres"}:${
       process.env.DB_PASS || ""

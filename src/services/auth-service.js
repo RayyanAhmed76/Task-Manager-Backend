@@ -1,7 +1,7 @@
 const bcrypt = require("bcrypt");
 const userRepo = require("../repositories/user-repository");
 
-const ConflictError = require("../utils/apperrors");
+const { ConflictError, AuthError } = require("../utils/apperrors");
 
 const register = async ({ name, email, password }) => {
   const existing = await userRepo.getUserByEmail(email);
@@ -14,10 +14,10 @@ const register = async ({ name, email, password }) => {
 
 const login = async ({ email, password }) => {
   const user = await userRepo.getUserByEmail(email);
-  if (!user) return null;
+  if (!user) throw new AuthError("Invalid email or passowrd!");
 
   const match = await bcrypt.compare(password, user.password_hash);
-  if (!match) return null;
+  if (!match) throw new AuthError("Invalid passowrd!");
 
   const { password_hash, ...safe } = user;
   return safe;

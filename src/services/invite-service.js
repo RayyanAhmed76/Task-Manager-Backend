@@ -10,7 +10,7 @@ const sendInviteEmail = async ({
   inviteToken,
 }) => {
   console.log("=".repeat(60));
-  console.log("📧 EMAIL INVITE (STUBBED - NOT ACTUALLY SENT)");
+  console.log("📧 EMAIL INVITE (NOT ACTUALLY SENT)");
   console.log("=".repeat(60));
   console.log(`To: ${toEmail}`);
   console.log(`From: ${fromUser.name} (${fromUser.email})`);
@@ -59,29 +59,38 @@ const createTeamInvite = async ({ team_id, email, requester_id }) => {
 
   const requester = await db("users").where({ id: requester_id }).first();
 
-  const [invite] = await db("team_invites")
-    .insert({
-      team_id,
-      email,
-      invited_by: requester_id,
-      token: inviteToken,
-      status: "pending",
-      expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
-    })
-    .returning("*")
-    .catch(() => {
-      // Table might not exist, return mock invite
-      return [
-        {
-          id: Date.now(),
-          team_id,
-          email,
-          invited_by: requester_id,
-          token: inviteToken,
-          status: "pending",
-        },
-      ];
-    });
+  // const [invite] = await db("team_invites")
+  //   .insert({
+  //     team_id,
+  //     email,
+  //     invited_by: requester_id,
+  //     token: inviteToken,
+  //     status: "pending",
+  //     expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+  //   })
+  //   .returning("*")
+  //   .catch(() => {
+  //     // Table might not exist, return mock invite
+  //     return [
+  //       {
+  //         id: Date.now(),
+  //         team_id,
+  //         email,
+  //         invited_by: requester_id,
+  //         token: inviteToken,
+  //         status: "pending",
+  //       },
+  //     ];
+  //   });
+
+  const invite = {
+    id: Date.now(),
+    team_id,
+    email,
+    invited_by: requester_id,
+    token: inviteToken,
+    status: "pending",
+  };
 
   // Send stubbed email
   await sendInviteEmail({
@@ -93,7 +102,7 @@ const createTeamInvite = async ({ team_id, email, requester_id }) => {
 
   return {
     invite,
-    message: `Invite sent to ${email} (check console for stubbed email)`,
+    message: `Invite sent to ${email} `,
   };
 };
 

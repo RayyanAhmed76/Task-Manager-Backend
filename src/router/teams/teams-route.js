@@ -6,9 +6,8 @@ const {
   createTeamValidator,
   teamIdParam,
   addMemberValidator,
+  emailValidator,
 } = require("../../validators/teamvalidation");
-const inviteService = require("../../services/invite-service");
-const { body } = require("express-validator");
 
 const router = express.Router();
 router.use(requireAuth);
@@ -29,24 +28,12 @@ router.post(
   teamCtrl.addMember
 );
 
-// Email invite endpoint (stubbed)
 router.post(
   "/:id/invite",
   teamIdParam,
-  body("email").isEmail().withMessage("Valid email required"),
+  emailValidator,
   handleValidationErrors,
-  async (req, res, next) => {
-    try {
-      const result = await inviteService.createTeamInvite({
-        team_id: parseInt(req.params.id, 10),
-        email: req.body.email,
-        requester_id: req.session.userId,
-      });
-      res.status(201).json(result);
-    } catch (err) {
-      next(err);
-    }
-  }
+  teamCtrl.inviteByemail
 );
 
 router.delete("/:id", teamIdParam, handleValidationErrors, teamCtrl.deleteTeam);
