@@ -1,5 +1,6 @@
 const teamService = require("../services/teams-service");
 const teamRepo = require("../repositories/teams-repository");
+const inviteService = require("../services/invite-service");
 
 const createTeam = async (req, res, next) => {
   try {
@@ -22,7 +23,50 @@ const listUserTeams = async (req, res, next) => {
   }
 };
 
+const addMember = async (req, res, next) => {
+  try {
+    const membership = await teamService.addMemberToTeam({
+      team_id: parseInt(req.params.id, 10),
+      user_id: req.body.user_id,
+      requester_id: req.session.userId,
+    });
+    res.status(201).json({ membership });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const inviteByemail = async (req, res, next) => {
+  try {
+    console.log("user session id" + req.session.userId);
+    const result = await inviteService.createTeamInvite({
+      team_id: parseInt(req.params.id, 10),
+      email: req.body.email,
+      requester_id: req.session.userId,
+    });
+    res.status(201).json(result);
+  } catch (err) {
+    next(err);
+  }
+};
+
+const deleteTeam = async (req, res, next) => {
+  try {
+    console.log(req.session.userId);
+    const result = await teamService.deleteTeamOwnerOnly({
+      team_id: parseInt(req.params.id, 10),
+      requester_id: req.session.userId,
+    });
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   createTeam,
   listUserTeams,
+  addMember,
+  deleteTeam,
+  inviteByemail,
 };

@@ -13,8 +13,32 @@ const listTeamsForUser = (userId) =>
     .where("memberships.user_id", userId)
     .select("teams.*");
 
+const isMember = async (userId, teamId) => {
+  const row = await db("memberships")
+    .where({ user_id: userId, team_id: teamId })
+    .first();
+  return !!row;
+};
+
+const isOwner = async (userId, teamId) => {
+  const team = await getTeamById(teamId);
+  return team && team.creator_id === userId;
+};
+
+const addMember = async ({ team_id, user_id, role = "member" }) => {
+  const [m] = await db("memberships")
+    .insert({ team_id, user_id, role })
+    .onConflict(["team_id", "user_id"])
+    .ignore()
+    .returning("*");
+  return m || { team_id, user_id, role };
+};
+
 module.exports = {
   createTeam,
   getTeamById,
   listTeamsForUser,
+  isMember,
+  isOwner,
+  addMember,
 };
